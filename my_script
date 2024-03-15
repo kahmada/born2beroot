@@ -1,0 +1,29 @@
+#!/bin/bash
+
+Architecture=$(uname -a | awk '{$6=""; print $0}')
+Phcpu=$(grep 'physical id' /proc/cpuinfo | uniq | wc -l)
+Vcpu=$(grep 'processor' /proc/cpuinfo | wc -l)
+MemUsage=$(free --mega | grep Mem | awk '{printf "%d/%dMB (%.2f%%)\n",$3,$2,$3*100/$2}')
+Disq_Used=$(df -Bm --total | grep total | awk ' {printf"%d", $3}')
+Disq_Total=$(df -Bg --total | grep total | awk '{printf "/%dGb (%d)" ,$2, $5}')
+CPULoad=$(mpstat | grep all | awk '{printf("%.1f%%\n", 100 - $13)}')
+LastBoot=$(who -b | awk '{print $3, $4}')
+LVMUse=$(if [ $(lsblk | grep "lvm" | wc -l) -eq 0 ]; then echo no; else echo yes; fi)
+ConnectionTCP=$(ss -ta | grep ESTAB | wc -l)
+UserLog=$(who | awk '{print $1}' | uniq | wc -l)
+IP=$(hostname -I)
+mac=$(ip link | grep link | awk '{print $2}')
+Sudo=$(journalctl -q _COMM=sudo | grep COMMAND | wc -l)
+
+wall "#Architecture: $Architecture
+#CPU physical: $Phcpu
+#vCPU: $Vcpu
+#Memory Usage: $MemUsage
+#Disk Usage: $Disq_Used$Disq_Total
+#CPU Load: $CPULoad
+#Last boot: $LastBoot
+#LVM use: $LVMUse
+#Connections TCP: $ConnectionTCP ESTABLISHED
+#User log: $UserLog
+#Network: IP $IP ($mac)
+#Sudo : $Sudo cmd "
